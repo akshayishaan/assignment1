@@ -1,9 +1,9 @@
 FROM node:lts
 WORKDIR /app
 COPY package*.json ./
-RUN npm install
 COPY . .
+RUN npm install
 RUN npm run build
-EXPOSE 4000
 RUN npm install -g pm2
+EXPOSE 4000
 CMD ["pm2-runtime", "dist/server.js"]
