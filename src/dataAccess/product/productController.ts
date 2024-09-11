@@ -1,5 +1,6 @@
 import puppeteer from 'puppeteer';
 import fs from 'fs';
+import path from 'path';
 import dotenv from 'dotenv';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import catchAsyncNormal from '../../utils/catchAsyncNormal';
@@ -18,6 +19,13 @@ const s3Client = new S3Client({
   },
 });
 
+async function ensureDirectoryExistence(filePath: string): Promise<void> {
+  const dirname = path.dirname(filePath);
+  if (!fs.existsSync(dirname)) {
+    fs.mkdirSync(dirname, { recursive: true });
+  }
+}
+
 const generatePdfForTheProducts = catchAsyncNormal(async (bundle: mongoose.Types.ObjectId | string, bundleName: string) => {
   let totalAmount = 0;
 
@@ -30,6 +38,7 @@ const generatePdfForTheProducts = catchAsyncNormal(async (bundle: mongoose.Types
 
   let htmlFile: string = await getTemplateForQuotation(products, totalAmount, finalAmountWithGST);
   const filePath = `${__dirname}/../../TEMP_FILES/${bundleName}.pdf`;
+  await ensureDirectoryExistence(filePath);
 
   const browser = await puppeteer.launch({ headless: true });
   const page = await browser.newPage();
